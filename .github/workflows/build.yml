@@ -1,0 +1,65 @@
+name: Build hikari_novel_flutter APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      PUB_HOSTED_URL: https://pub.flutter-io.cn
+      FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
+      GRADLE_OPTS: -Xmx4g
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # ⭐ 使用 pub 推荐的精确版本
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.2
+          channel: stable
+          cache: true
+
+      - name: Check version
+        run: flutter --version
+
+      - name: Accept Android licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+        continue-on-error: true
+
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hikari-novel-apk
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: build/app/outputs/flutter-apk/*.apk
+          tag: auto-${{ github.run_number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
