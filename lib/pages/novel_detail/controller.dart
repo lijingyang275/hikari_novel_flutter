@@ -338,11 +338,16 @@ class NovelDetailController extends GetxController with GetSingleTickerProviderS
       return false;
     } else {
       bool isDualPage = switch (LocalStorageService.instance.getReaderDualPageMode()) {
-        DualPageMode.auto => Get.context!.isLargeScreen(),
+        DualPageMode.auto => Get.context!.shouldAutoUseDualPage(),
         DualPageMode.enabled => true,
         DualPageMode.disabled => false,
       };
-      return data.isDualPage == isDualPage && data.readerMode == LocalStorageService.instance.getReaderDirection().index;
+      bool isSameReaderMode = switch (LocalStorageService.instance.getReaderDirection()) {
+        ReaderDirection.leftToRight => data.readerMode == kPageReadMode,
+        ReaderDirection.rightToLeft => data.readerMode == kPageReadMode,
+        ReaderDirection.upToDown => data.readerMode == kScrollReadMode,
+      };
+      return data.isDualPage == isDualPage && isSameReaderMode;
     }
   }
 
@@ -352,7 +357,7 @@ class NovelDetailController extends GetxController with GetSingleTickerProviderS
     }
 
     bool isDualPage = switch (LocalStorageService.instance.getReaderDualPageMode()) {
-      DualPageMode.auto => Get.context!.isLargeScreen(),
+      DualPageMode.auto => Get.context!.shouldAutoUseDualPage(),
       DualPageMode.enabled => true,
       DualPageMode.disabled => false,
     };
@@ -376,7 +381,7 @@ class NovelDetailController extends GetxController with GetSingleTickerProviderS
     }
 
     bool isDualPage = switch (LocalStorageService.instance.getReaderDualPageMode()) {
-      DualPageMode.auto => Get.context!.isLargeScreen(),
+      DualPageMode.auto => Get.context!.shouldAutoUseDualPage(),
       DualPageMode.enabled => true,
       DualPageMode.disabled => false,
     };
@@ -415,7 +420,7 @@ class NovelDetailController extends GetxController with GetSingleTickerProviderS
     // 1为滚动模式，2为翻页模式，翻页模式的左右方向不影响阅读记录的使用
     final readerMode = LocalStorageService.instance.getReaderDirection() == ReaderDirection.upToDown ? kScrollReadMode : kPageReadMode;
     bool isDualPage = switch (LocalStorageService.instance.getReaderDualPageMode()) {
-      DualPageMode.auto => Get.context!.isLargeScreen(),
+      DualPageMode.auto => Get.context!.shouldAutoUseDualPage(),
       DualPageMode.enabled => true,
       DualPageMode.disabled => false,
     };
